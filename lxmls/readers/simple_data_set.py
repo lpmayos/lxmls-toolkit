@@ -80,7 +80,7 @@ class SimpleDataSet:
         # Plot Bayes optimal
         if print_bayes_opt:
             bayes_opt_params = self.get_bayes_optimal()
-            self.add_line(fig, axis, bayes_opt_params, "Bayes Optimal", "black")
+            self.add_line(fig, axis, bayes_opt_params, "Bayes Optimal", "red")
 
         axis.legend()
         #        fig.show()
