@@ -1,3 +1,4 @@
+import lxmls.readers.sentiment_reader as srs
 import numpy as np
 import scipy as scipy
 import lxmls.classifiers.linear_classifier as lc
@@ -42,7 +43,46 @@ class MultinomialNaiveBayes(lc.LinearClassifier):
         # ----------
         # Solution to Exercise 1
 
-        raise NotImplementedError("Complete Exercise 1")
+        # P(x,y) --> probability of "fantastic" and positive occur at the same time in a document
+        # P(y)   --> probability that a document is positive
+        # P(x|y) --> probability of "fantastic" appearing in a document given that the document is positive
+        # P(x,y) = P(y)P(x|y)
+
+        # 1) prior: the class priors’ estimates are their relative frequencies
+
+        # freq = np.bincount(y.flatten())  # also works, but generates a copy of y wasting memory
+        freq = np.bincount(y[:, 0])
+        prior[0] = freq[0] / n_docs
+        prior[1] = freq[1] / n_docs
+
+        # 2) likelihood: the class-conditional word probabilities are the relative frequencies of those words across documents with that class.
+
+        # get negative and positive docs indices and filter docs
+
+        idx0, vals0 = np.where(y == 0)
+        idx1, vals1 = np.where(y == 1)
+
+        docs0 = x[idx0, :]
+        docs1 = x[idx1, :]
+
+        # compute total of words on negative and positive documents
+
+        num_words_in_docs0 = np.sum(docs0)
+        num_words_in_docs1 = np.sum(docs1)
+
+        # compute probability of each word for negative and positive documents
+
+        # without smoothing --> problems with OOV words causing division by 0!
+        # words_probs_docs0 = np.sum(docs0, 0) / num_words_in_docs0
+        # words_probs_docs1 = np.sum(docs1, 0) / num_words_in_docs1
+
+        # with smoothing
+        words_probs_docs0 = (np.sum(docs0, 0) + 1) / (num_words_in_docs0 + n_words)
+        words_probs_docs1 = (np.sum(docs1, 0) + 1) / (num_words_in_docs1 + n_words)
+
+        likelihood[:, 0] = words_probs_docs0
+        likelihood[:, 1] = words_probs_docs1
+
 
         # End solution to Exercise 1
         # ----------
@@ -55,3 +95,14 @@ class MultinomialNaiveBayes(lc.LinearClassifier):
         self.prior = prior
         self.trained = True
         return params
+
+
+if __name__ == '__main__':
+    scr = srs.SentimentCorpus("books")
+    mnb = MultinomialNaiveBayes()
+    params_nb_sc = mnb.train(scr.train_X, scr.train_y)
+    y_pred_train = mnb.test(scr.train_X, params_nb_sc)
+    acc_train = mnb.evaluate(scr.train_y, y_pred_train)
+    y_pred_test = mnb.test(scr.test_X, params_nb_sc)
+    acc_test = mnb.evaluate(scr.test_y, y_pred_test)
+    print("Multinomial Naive Bayes Amazon Sentiment Accuracy train: %f test: %f" % (acc_train, acc_test))
