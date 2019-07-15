@@ -95,8 +95,57 @@ class NumpyMLP(MLP):
         # ----------
         # Solution to Exercise 2
 
-        raise NotImplementedError("Implement Exercise 2")
-        
+        # errors = np.zeros()
+        errors = []
+        for n in range(len(self.parameters), -1, -1):
+
+            if n == len(self.parameters):
+                # error at softmax layer
+                I = index2onehot(output, num_clases)
+                non_linear_error = (prob_y - I)
+                errors.append(non_linear_error)
+
+            else:
+                # linear error
+                weights_n, bias_n = self.parameters[n]
+                # linear_error = np.dot(weights_n.T, errors[-1])
+                linear_error = np.dot(errors[-1], weights_n)
+
+                # non_linear error (sigmoid)
+                non_linear_error = 1.0 / (1 + np.exp(-linear_error))
+                errors.append(non_linear_error)
+
+            print(non_linear_error.shape)
+
+        # update weights
+        gradients = []
+        errors.reverse()
+        for n in range(len(self.parameters)):
+            weights, bias = self.parameters[n]
+            error = errors[n]
+            input = layer_inputs[n]
+
+            gradient_weight = np.zeros(weights.shape)
+            for l in range(num_examples):
+                # error[l, :] --> previous error
+                # input[l, :] --> output of previous layer, a.k.a. the input of this layer
+                gradient_weight += np.outer(error[l, :], input[l, :])
+
+            # Bias gradient
+            gradient_bias = np.sum(error, axis=0, keepdims=True)
+
+            gradients.append((gradient_weight, gradient_bias))
+
+            # another function updates the weights and the bias
+            # # SGD update
+            # learning_rate = self.config['learning_rate']
+            # weights = weights - learning_rate * gradient_weight
+            # bias = bias - learning_rate * gradient_bias
+            #
+            # # update parameters
+            # self.parameters[n][0] = weights
+            # self.parameters[n][1] = bias
+
         # End of solution to Exercise 2
         # ----------
 
