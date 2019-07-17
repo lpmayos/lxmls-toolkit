@@ -95,27 +95,20 @@ class NumpyMLP(MLP):
         # ----------
         # Solution to Exercise 2
 
-        # errors = np.zeros()
-        errors = []
-        for n in range(len(self.parameters), -1, -1):
+        # error at softmax layer
+        I = index2onehot(output, num_clases)
+        non_linear_error = (prob_y - I) / num_examples
+        errors.append(non_linear_error)
 
-            if n == len(self.parameters):
-                # error at softmax layer
-                I = index2onehot(output, num_clases)
-                non_linear_error = (prob_y - I)
-                errors.append(non_linear_error)
+        for n in reversed(range(num_hidden_layers)):
 
-            else:
-                # linear error
-                weights_n, bias_n = self.parameters[n]
-                # linear_error = np.dot(weights_n.T, errors[-1])
-                linear_error = np.dot(errors[-1], weights_n)
+            # backpropagation through linear layer
+            weights_n, bias_n = self.parameters[n+1]
+            linear_error = np.dot(errors[-1], weights_n)
 
-                # non_linear error (sigmoid)
-                non_linear_error = 1.0 / (1 + np.exp(-linear_error))
-                errors.append(non_linear_error)
-
-            print(non_linear_error.shape)
+            # backpropagation through sigmoid
+            non_linear_error = linear_error * layer_inputs[n+1] * (1 - layer_inputs[n+1])
+            errors.append(non_linear_error)
 
         # update weights
         gradients = []
@@ -123,20 +116,21 @@ class NumpyMLP(MLP):
         for n in range(len(self.parameters)):
             weights, bias = self.parameters[n]
             error = errors[n]
-            input = layer_inputs[n]
+            layer_input = layer_inputs[n]
 
             gradient_weight = np.zeros(weights.shape)
             for l in range(num_examples):
                 # error[l, :] --> previous error
                 # input[l, :] --> output of previous layer, a.k.a. the input of this layer
-                gradient_weight += np.outer(error[l, :], input[l, :])
+                aux = np.outer(error[l, :], layer_input[l, :])
+                gradient_weight += aux
 
             # Bias gradient
             gradient_bias = np.sum(error, axis=0, keepdims=True)
 
             gradients.append((gradient_weight, gradient_bias))
 
-            # another function updates the weights and the bias
+            # another function updates the weights and the bias, so we do NOT need to run this here!
             # # SGD update
             # learning_rate = self.config['learning_rate']
             # weights = weights - learning_rate * gradient_weight

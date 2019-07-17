@@ -43,6 +43,7 @@ class NumpyLogLinear(Model):
         #
         I = index2onehot(output, num_classes)
         error = (class_probabilities - I) / batch_size
+        # print(error.shape)
 
         #
         gradient_weight = np.zeros(self.weight.shape)
