@@ -80,9 +80,15 @@ class IDFeatures:
             emission_features.append(features)
 
             if pos > 0:
+
+                if pos < len(sequence) - 1:
+                    next_tag = sequence.y[pos + 1]
+                else:
+                    next_tag = None
+
                 prev_tag = sequence.y[pos-1]
                 features = []
-                features = self.add_transition_features(sequence, pos-1, tag, prev_tag, features)
+                features = self.add_transition_features(sequence, pos, tag, prev_tag, features, next_tag)
                 transition_features.append(features)
 
         # Take care of final position
@@ -175,7 +181,7 @@ class IDFeatures:
             features.append(feat_id)
         return features
 
-    def add_transition_features(self, sequence, pos, y, y_prev, features):
+    def add_transition_features(self, sequence, pos, y, y_prev, features, y_next=None):
         """ Adds a feature to the edge feature list.
         Creates a unique id if its the first time the feature is visited
         or returns the existing id otherwise

@@ -121,7 +121,7 @@ class SequenceClassificationDecoder:
         best_path[seq_idx] = np.argmax(last_score)
         seq_idx -= 1
 
-        while seq_idx > 0:
+        while seq_idx >= 0:
             current_state = best_path[seq_idx + 1]
             previous_state = viterbi_paths[seq_idx + 1, current_state]
 

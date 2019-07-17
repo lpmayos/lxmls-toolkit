@@ -150,7 +150,7 @@ class SequenceClassifier:
             predictions.append(predicted_sequence)
         return predictions
 
-    def evaluate_corpus(self, dataset, predictions):
+    def evaluate_corpus(self, dataset, predictions, debug=False):
         """Evaluate classification accuracy at corpus level, comparing with
         gold standard."""
         total = 0.0
@@ -160,5 +160,10 @@ class SequenceClassifier:
             for j, y_hat in enumerate(pred.y):
                 if sequence.y[j] == y_hat:
                     correct += 1
+                else:
+                    if debug:
+                        print(sequence)
+                        print(pred)
+                        print('\n')
                 total += 1
         return correct / total
